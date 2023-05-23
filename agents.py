@@ -1,5 +1,6 @@
 import math
 import random
+from typing import Any
 
 import numpy as np
 import pygame
@@ -7,20 +8,26 @@ import pygame
 
 class Recolector():
 
+    def __instancecheck__(self, __instance: Any) -> bool:
+        return isinstance(__instance, Recolector)
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = random.randint(5,9)
+        self.pos = (self.x, self.y)
+        
         self.full = False
+
         self.base_counter = 0
-        self.resource_counter = 2600
+        self.resource_counter = 2000
+
         self.heading_base = False
 
-        self.speed = random.uniform(1, 10)
+        self.speed = random.uniform(5, 10)
         self.angle = random.uniform(0, 2 * math.pi)
 
         self.color = (0, 255, 0)
-        self.pos = (self.x, self.y)
+        
 
     def update(self):
         # Actualizar la posicion
@@ -30,14 +37,14 @@ class Recolector():
 
         self.pos = (round(self.x), round(self.y))
 
-        # Actualizar contadores
+        # Actualizar indice de confianza
         self.base_counter += 1
         self.resource_counter += 1
 
         # Rebotar en los bordes de la ventana
-        if self.x < 0 or self.x > 1600:
+        if self.x < 0 or self.x > 1500:
             self.angle = math.pi - self.angle
-        if self.y < 0 or self.y > 1000:
+        if self.y < 0 or self.y > 800:
             self.angle = -self.angle
 
     def draw(self, screen):
@@ -45,54 +52,52 @@ class Recolector():
             self.color = (255, 0, 0)
         else:
             self.color = (0, 255, 0)
-        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 5)
+        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 3)
 
+    def shout(self, recolectores):
+        pass
+    """
+        for recolector in recolectores:
+            if recolector.base_counter > self.base_counter:
+                recolector.base_counter = self.base_counter+50
+                if recolector.heading_base:
+                    recolector.cambiar_direccion_hacia_punto(self.x, self.y)
+            else:
+                self.base_counter = recolector.base_counter+50
+                if self.heading_base:
+                    recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
 
-    def hear(self, agents, distance=50):
-        for agent in agents:
-            # Verificar si lo puedo escuchar
-            if agent.pos in obtener_coordenadas_en_radio(self.pos, distance):
-                if agent.base_counter < self.base_counter:
-                    self.base_counter = agent.base_counter + 50
-                    if self.heading_base == True:
-                        self.cambiar_direccion_hacia_punto(agent.x, agent.y)
-                if agent.resource_counter < self.resource_counter:
-                    self.resource_counter = agent.resource_counter + 50
-                    if self.heading_base == False:
-                        self.cambiar_direccion_hacia_punto(agent.x, agent.y)
-        
-
-    def shout(self, agents, distance=100):
-        radius = obtener_coordenadas_en_radio(self.pos, distance)
-        for pos in radius:
-            for agent in agents:
-                if agent.pos in pos:
-                    #
-                    if self.base_counter < agent.base_counter:
-                        agent.base_counter = self.base_counter+distance
-                        if agent.heading_base == True:
-                            agent.cambiar_direccion_hacia_punto(self.x, self.y) 
-                    if self.resource_counter < agent.resource_counter:
-                        agent.resource_counter = self.resource_counter+distance
-                        if agent.heading_base == False:
-                            agent.cambiar_direccion_hacia_punto(self.x, self.y) 
+            if recolector.resource_counter > self.resource_counter:
+                recolector.resource_counter = self.resource_counter+50
+                if not recolector.heading_base:
+                    recolector.cambiar_direccion_hacia_punto(self.x, self.y)
+            else:
+                self.resource_counter = recolector.resource_counter+50
+                if not self.heading_base:
+                    recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
+            """
 
     def cambiar_direccion_hacia_punto(self, objetivo_x, objetivo_y):
         dx = objetivo_x - self.x
         dy = objetivo_y - self.y
         angulo_radianes = math.atan2(dy, dx)
-        print(self.angle)
+        #print(self.angle)
         self.angle = angulo_radianes
-        print(self.angle)
+        #print(self.angle)
 
 
 class Queen():
+
+    def __instancecheck__(self, __instance: Any) -> bool:
+        return isinstance(__instance, Queen)
+    
     def __init__(self, WIDTH, HEIGHT) -> None:
         self.x = random.randint(0, WIDTH)
         self.y = random.randint(0, HEIGHT)
         self.resources = 1000
         self.color = (255, 255, 0)
         self.pos = (self.x, self.y)
+        self.heading_base = False
 
     def create_recolector(self):
         return Recolector(self.x, self.y)
@@ -100,7 +105,19 @@ class Queen():
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 10)
 
+    def shout(self, recolectores, colision):
+        pass 
+    # Esto lo tuve que agregar pq por alguna razon el quadtree no le funciona la opcion
+    # onlyRecolectors en el metodo de get_adjacent
+    # Sin embargo queda abierta a la posibilidad que la reina se comunique con algun fin
+    # con los recolectores, ya sea para avisar de su posicion o enviar ordenes mas complejas
+    # ARREGLADO 
+
 class Resource():
+
+    def __instancecheck__(self, __instance: Any) -> bool:
+        return isinstance(__instance, Resource)   
+    
     def __init__(self, x, y) -> None:
         self.amount = 1000
         self.color = (255, 255, 255)
