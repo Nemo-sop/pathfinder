@@ -23,7 +23,7 @@ class Recolector():
 
         self.heading_base = False
 
-        self.speed = random.uniform(5, 10)
+        self.speed = random.randint(5, 15)
         self.angle = random.uniform(0, 2 * math.pi)
 
         self.color = (0, 255, 0)
@@ -56,7 +56,7 @@ class Recolector():
 
     def shout(self, recolectores):
         pass
-    """
+    """ implementacion vieja donde un recolector actualizaba a sus vecinos
         for recolector in recolectores:
             if recolector.base_counter > self.base_counter:
                 recolector.base_counter = self.base_counter+50
@@ -76,6 +76,23 @@ class Recolector():
                 if not self.heading_base:
                     recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
             """
+    
+    def hear(self, recolectores_cercanos):
+        for recolector in recolectores_cercanos:
+            # si el recolector esta mas cerca de la base, actualizo mi contador
+            if recolector.base_counter < self.base_counter:
+                self.base_counter = recolector.base_counter+50
+                # si yo me estoy dirigiendo a la base, cambio mi direccion hacia el
+                if self.heading_base:
+                    self.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
+
+            # si el recolector esta mas cerca del recurso, actualizo mi contador
+            if recolector.resource_counter < self.resource_counter:
+                self.resource_counter = recolector.resource_counter+50
+                # si yo me estoy dirigiendo al recurso, cambio mi direccion hacia el
+                if not recolector.heading_base:
+                    self.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
+            
 
     def cambiar_direccion_hacia_punto(self, objetivo_x, objetivo_y):
         dx = objetivo_x - self.x
@@ -84,6 +101,9 @@ class Recolector():
         #print(self.angle)
         self.angle = angulo_radianes
         #print(self.angle)
+
+    def rotate_180_degrees(self):
+        self.angle += math.pi
 
 
 class Queen():

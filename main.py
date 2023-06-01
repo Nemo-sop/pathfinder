@@ -10,6 +10,7 @@ HEIGHT = 800
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Window 1")
 fps = FPS()
 
 # Crear el Quadtree con las dimensiones de la ventana
@@ -67,10 +68,10 @@ while True:
             # verificar si el recolector esta colisionando con algo
             # tener en cuenta q no existen colisiones entre recolectores
             colisiones = space.get_adjacents(agent.x, agent.y, distancia=7)
-            if iteration > 100:
-                recolectors_in_range_shout = space.get_adjacents(agent.x, agent.y, distancia=50, onlyRecolectors=True)
-                agent.shout(recolectors_in_range_shout) # arreglar
-            print(agent.resource_counter)
+            
+            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=50, onlyRecolectors=True)
+            #agent.shout(recolectors_in_range_shout) # arreglar
+            #print(agent.resource_counter)
             for colision in colisiones:
                 # verificar si el agente esta sobre un recurso y no esta cargado
                 if isinstance(colision, Resource):
@@ -79,6 +80,7 @@ while True:
                         agent.resource_counter = 0
                         agent.heading_base = True
                         colision.amount -= 10
+                        agent.rotate_180_degrees()
                 # verificar si esta sobre la base y tiene recursos
                 elif isinstance(colision, Queen):
                     if agent.full == True:
@@ -87,12 +89,17 @@ while True:
                         agent.heading_base = False
                         colision.resources += 10
 
+            agent.hear(recolectors_in_range_to_hear)
             agent.update()
             agent.draw(screen)
+        
+    font = pygame.font.SysFont('Verdana', 20)
+    text = font.render(str("Agent Count: "+str(len(agents))), True, (255,0,0))
+    screen.blit(text, (25, 50))
 
-    fps.render(screen)
+    fps.renderFPS(screen)
     pygame.display.update()
-    fps.clock.tick(60)
+    fps.clock.tick(512)
 
 
 
