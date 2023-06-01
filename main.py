@@ -46,17 +46,8 @@ while True:
 
     for agent in agents:
 
-    # Actualizar y dibujar a las reinas
-        if isinstance(agent, Queen):
-            agent.draw(screen)
-            if agent.resources >= 10:
-                new_recolector = agent.create_recolector()
-                agent.resources -= 10
-                space.insert_agent(new_recolector)
-            
-
         # Actualizar y dibujar a los recursos
-        elif isinstance(agent, Resource):
+        if isinstance(agent, Resource):
             if agent.amount <= 0:
                 space.remove_agent(agent)
             else:
@@ -92,6 +83,16 @@ while True:
             agent.hear(recolectors_in_range_to_hear)
             agent.update()
             agent.draw(screen)
+        
+        # Actualizar y dibujar a las reinas
+        elif isinstance(agent, Queen):
+            agent.draw(screen)
+            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=50, onlyRecolectors=True)
+            agent.shout(recolectors_in_range_to_hear)
+            if agent.resources >= 10:
+                new_recolector = agent.create_recolector()
+                agent.resources -= 10
+                space.insert_agent(new_recolector)
         
     font = pygame.font.SysFont('Verdana', 20)
     text = font.render(str("Agent Count: "+str(len(agents))), True, (255,0,0))

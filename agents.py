@@ -125,13 +125,20 @@ class Queen():
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 10)
 
-    def shout(self, recolectores, colision):
-        pass 
-    # Esto lo tuve que agregar pq por alguna razon el quadtree no le funciona la opcion
-    # onlyRecolectors en el metodo de get_adjacent
-    # Sin embargo queda abierta a la posibilidad que la reina se comunique con algun fin
-    # con los recolectores, ya sea para avisar de su posicion o enviar ordenes mas complejas
-    # ARREGLADO 
+    def shout(self, recolectores_cercanos):
+        for recolector in recolectores_cercanos:
+        # si el recolector esta mas cerca de la reina le grito q venga
+        # y este la esta buscando
+            if recolector.heading_base:
+                recolector.cambiar_direccion_hacia_punto(self.x, self.y)
+                # punto 1 es la posicion de la reina
+                x1 = self.x
+                y1 = self.y
+                # punto 2 es la posicion del recolector
+                x2 = recolector.x
+                y2 = recolector.y
+                recolector.base_counter = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    
 
 class Resource():
 
@@ -139,7 +146,7 @@ class Resource():
         return isinstance(__instance, Resource)   
     
     def __init__(self, x, y) -> None:
-        self.amount = 1000
+        self.amount = 10000000
         self.color = (255, 255, 255)
         self.x = x
         self.y = y
