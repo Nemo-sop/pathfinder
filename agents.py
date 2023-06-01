@@ -153,7 +153,7 @@ class Resource():
         self.pos = (self.x, self.y)
 
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.amount/100)
+        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 10)#self.amount/100)
 
     def update():
         pass
