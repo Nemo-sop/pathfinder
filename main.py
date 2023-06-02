@@ -21,12 +21,17 @@ num_queens = 1
 queens = [Queen(WIDTH, HEIGHT) for _ in range(num_queens)]
 for i in queens:
     space.insert_agent(i)
-iteration = 0
+
 
 
 # Bucle principal del juego
 while True:
-    iteration += 1
+
+    count = {'Reinas': 0,
+         'Recolectores': 0,
+         'Recursos': 0,
+         'Feromonas': 0}
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -48,47 +53,55 @@ while True:
 
         # Actualizar y dibujar a los recursos
         if isinstance(agent, Resource):
+            count['Recursos'] += 1
             if agent.amount <= 0:
                 space.remove_agent(agent)
             else:
                 agent.draw(screen)
 
+            recolectors_in_resource = space.get_adjacents(agent.x, agent.y, distancia=20 ,onlyRecolectors=True)
+
+            for recolector in recolectors_in_resource:
+                recolector.heading = 'home'
+
+
         # Actualizar y dibujar a los recolectores
         elif isinstance(agent, Recolector):
-
-            # verificar si el recolector esta colisionando con algo
-            # tener en cuenta q no existen colisiones entre recolectores
-            colisiones = space.get_adjacents(agent.x, agent.y, distancia=7)
-            
-            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=50, onlyRecolectors=True)
-            #agent.shout(recolectors_in_range_shout) # arreglar
-            #print(agent.resource_counter)
-            for colision in colisiones:
-                # verificar si el agente esta sobre un recurso y no esta cargado
-                if isinstance(colision, Resource):
-                    if agent.full == False:
-                        agent.full = True
-                        agent.resource_counter = 0
-                        agent.heading_base = True
-                        colision.amount -= 10
-                        agent.rotate_180_degrees()
-                # verificar si esta sobre la base y tiene recursos
-                elif isinstance(colision, Queen):
-                    if agent.full == True:
-                        agent.full = False
-                        agent.base_counter = 0
-                        agent.heading_base = False
-                        colision.resources += 10
-
-            agent.hear(recolectors_in_range_to_hear, screen)
+            count['Recolectores'] += 1
             agent.update()
+            new_pheromone = agent.leave_phermone()
+            if new_pheromone:
+                space.insert_agent(new_pheromone)
+
+            close_pheromones = space.get_adjacents(agent.x, agent.y, onlyPheromones=True)
+            close_home_pheromones = [pheromone for pheromone in close_pheromones if pheromone.type == 'home']
+            close_resource_pheromones = [pheromone for pheromone in close_pheromones if pheromone.type == 'resource']
+            '''
+            if agent.heading == 'home':
+                agent.update_direction(close_home_pheromones)
+            else:
+                agent.update_direction(close_resource_pheromones) 
+            '''
             agent.draw(screen)
+
+
+        
+        # Actualizar y dibujar la feromonas
+        elif isinstance(agent, Pheromone):
+            count['Feromonas'] +=1
+                
+            agent.update()
+            if agent.strength <= 0:
+                space.remove_agent(agent)
+                count['Feromonas'] -= 1
+            agent.draw(screen)
+
+
         
         # Actualizar y dibujar a las reinas
         elif isinstance(agent, Queen):
+            count['Reinas'] += 1
             agent.draw(screen)
-            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=100, onlyRecolectors=True)
-            agent.shout(recolectors_in_range_to_hear)
             if agent.resources >= 10:
                 new_recolector = agent.create_recolector()
                 agent.resources -= 10
@@ -102,7 +115,8 @@ while True:
 
     fps.renderFPS(screen)
     pygame.display.update()
-    fps.clock.tick(512)
+    fps.clock.tick(35)
+    print(count)
 
     
 

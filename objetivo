@@ -1,0 +1,11 @@
+1) Vision de los recolectores:
+
+El objetivo es que los recolectores tengan un campo de vision no circular, sino en forma de cono
+de por ejemplo 60 grados, pueda determinar la concentracion de feromonas es mayor en la posicion x_central 
+o alguna lateral y en base a eso tomar una direccion, idealmente ponderamos todos los puntos y sacamos un vector
+de direccion resultante que actualice el movimiento
+
+2) Sistema:
+
+Tendra dos modos, uno para visualizar en detalle el comportamiento de pocos agentes y onlyRecolectorspara observar
+el comportamiento de muchos agentes trabajando en conjunto.

@@ -15,31 +15,18 @@ class Recolector():
         self.x = x
         self.y = y
         self.pos = (self.x, self.y)
+        self.speed = random.randint(5, 8)
+        self.angle = random.uniform(0, 360)
+        self.color = (255, 255, 255)
+        self.heading = 'resource'
+        self.distance_traveled_for_pheromone = 10
         
-        self.full = False
-
-        self.base_counter = 0
-        self.resource_counter = 2000
-
-        self.heading_base = False
-
-        self.speed = random.randint(5, 15)
-        self.angle = random.uniform(0, 2 * math.pi)
-
-        self.color = (0, 255, 0)
-        
-
     def update(self):
         # Actualizar la posicion
         self.x += (self.speed * math.cos(self.angle))
         self.y += (self.speed * math.sin(self.angle))
-        
 
         self.pos = (round(self.x), round(self.y))
-
-        # Actualizar indice de confianza
-        self.base_counter += 1
-        self.resource_counter += 1
 
         # Rebotar en los bordes de la ventana
         if self.x < 0 or self.x > 1500:
@@ -47,66 +34,76 @@ class Recolector():
         if self.y < 0 or self.y > 800:
             self.angle = -self.angle
 
+        self.distance_traveled_for_pheromone += 1
+
     def draw(self, screen):
-        if self.full:
-            self.color = (255, 0, 0)
-        else:
-            self.color = (0, 255, 0)
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 3)
+        
+    def leave_phermone(self):
+        if self.heading == 'resource':
+            type = 'home'
+        else:
+            type = 'resource'
 
-    def shout(self, recolectores):
-        pass
-    """ implementacion vieja donde un recolector actualizaba a sus vecinos
-        for recolector in recolectores:
-            if recolector.base_counter > self.base_counter:
-                recolector.base_counter = self.base_counter+50
-                if recolector.heading_base:
-                    recolector.cambiar_direccion_hacia_punto(self.x, self.y)
-            else:
-                self.base_counter = recolector.base_counter+50
-                if self.heading_base:
-                    recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
+        if self.distance_traveled_for_pheromone >= self.speed *1.3:
+            self.distance_traveled_for_pheromone = 0
+            return Pheromone(self.x, self.y, type)
+        
+    def grab_resource(self):
+        self.heading = 'home'
+        
+    def update_direction(self, pheromones):
+        if len(pheromones) == 0:
+            return
 
-            if recolector.resource_counter > self.resource_counter:
-                recolector.resource_counter = self.resource_counter+50
-                if not recolector.heading_base:
-                    recolector.cambiar_direccion_hacia_punto(self.x, self.y)
-            else:
-                self.resource_counter = recolector.resource_counter+50
-                if not self.heading_base:
-                    recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
-            """
+        sum_vector = (0, 0)
+
+        for pheromone in pheromones:
+            pheromone_vector = (
+                pheromone.x - self.x,
+                pheromone.y - self.y
+            )
+            sum_vector = (
+                sum_vector[0] + pheromone_vector[0],
+                sum_vector[1] + pheromone_vector[1]
+            )
+
+        magnitude = math.sqrt(sum_vector[0]**2 + sum_vector[1]**2)
+        if magnitude > 0:
+            normalized_vector = (
+                sum_vector[0] / magnitude,
+                sum_vector[1] / magnitude
+            )
+            self.angle = math.atan2(normalized_vector[1], normalized_vector[0])
+        else:
+            self.angle = self.angle
+
+        self.angle = math.degrees(self.angle)
+
+class Pheromone():
+    def __init__(self, x, y, type) -> None:
+        self.strength = 50
+        self.x = x
+        self.y = y
+        self.pos = (self.x, self.y)
+        self.type = type
+        if type == 'resource':
+            self.color = (0, 0, 255)
+        if type == 'home':
+            self.color = (255, 0, 0)
+
+    def update(self):
+        self.strength -= 1
+
+    def draw(self, screen):
+        intensity = self.strength / 100
+        color = (
+            max(0, min(int(self.color[0] * intensity), 255)),
+            max(0, min(int(self.color[1] * intensity), 255)),
+            max(0, min(int(self.color[2] * intensity), 255))
+        )
+        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 1)
     
-    def hear(self, recolectores_cercanos, screen):
-        for recolector in recolectores_cercanos:
-            # si el recolector esta mas cerca de la base, actualizo mi contador
-            if recolector.base_counter < self.base_counter:
-                self.base_counter = recolector.base_counter+50
-                # si yo me estoy dirigiendo a la base, cambio mi direccion hacia el
-                if self.heading_base:
-                    self.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
-                    pos1 = (self.x, self.y)
-                    pos2 = (recolector.x, recolector.y)
-                    pygame.draw.line(screen,(255,255,255), pos1, pos2)
-
-            # si el recolector esta mas cerca del recurso, actualizo mi contador
-            if recolector.resource_counter < self.resource_counter:
-                self.resource_counter = recolector.resource_counter+50
-                # si yo me estoy dirigiendo al recurso, cambio mi direccion hacia el
-                if not recolector.heading_base:
-                    self.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
-            
-
-    def cambiar_direccion_hacia_punto(self, objetivo_x, objetivo_y):
-        dx = objetivo_x - self.x
-        dy = objetivo_y - self.y
-        angulo_radianes = math.atan2(dy, dx)
-        #print(self.angle)
-        self.angle = angulo_radianes
-        #print(self.angle)
-
-    def rotate_180_degrees(self):
-        self.angle += math.pi
 
 
 class Queen():
@@ -117,30 +114,16 @@ class Queen():
     def __init__(self, WIDTH, HEIGHT) -> None:
         self.x = random.randint(0, WIDTH)
         self.y = random.randint(0, HEIGHT)
-        self.resources = 1000
+        self.resources = 100
         self.color = (255, 255, 0)
         self.pos = (self.x, self.y)
-        self.heading_base = False
+        
 
     def create_recolector(self):
         return Recolector(self.x, self.y)
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 10)
-
-    def shout(self, recolectores_cercanos):
-        for recolector in recolectores_cercanos:
-        # si el recolector esta mas cerca de la reina le grito q venga
-        # y este la esta buscando
-            if recolector.heading_base:
-                recolector.cambiar_direccion_hacia_punto(self.x, self.y)
-                # punto 1 es la posicion de la reina
-                x1 = self.x
-                y1 = self.y
-                # punto 2 es la posicion del recolector
-                x2 = recolector.x
-                y2 = recolector.y
-                recolector.base_counter = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
     
 
 class Resource():
@@ -150,7 +133,7 @@ class Resource():
     
     def __init__(self, x, y) -> None:
         self.amount = 10000000
-        self.color = (255, 255, 255)
+        self.color = (0, 255, 0)
         self.x = x
         self.y = y
         self.pos = (self.x, self.y)
@@ -160,15 +143,3 @@ class Resource():
 
     def update():
         pass
-
-def obtener_coordenadas_en_radio(punto_central, radio=8):
-    puntos_en_radio = []
-    x_central, y_central = punto_central
-
-    for x in range(x_central - radio, x_central + radio + 1):
-        for y in range(y_central - radio, y_central + radio + 1):
-            distancia = abs(x - x_central) + abs(y - y_central)
-            if distancia <= radio:
-                puntos_en_radio.append((x, y))
-
-    return puntos_en_radio

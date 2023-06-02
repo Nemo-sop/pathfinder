@@ -1,6 +1,6 @@
 import math
 
-from agents import Recolector
+from agents import Pheromone, Recolector
 
 
 class Quadtree:
@@ -62,21 +62,24 @@ class Quadtree:
 
         return None
     
-    def get_adjacents(self, x, y, distancia=50, onlyRecolectors=False):
+    def get_adjacents(self, x, y, distancia=55, onlyRecolectors=False, onlyPheromones=False):
         agentes_en_distancia = []
 
         for agent in self.agents:
             if self.calc_dist(agent.x, agent.y, x, y) <= distancia:
                 if onlyRecolectors:
                     if isinstance(agent, Recolector):
-                        agentes_en_distancia.append(agent)  
+                        agentes_en_distancia.append(agent)
+                if onlyPheromones:
+                    if isinstance(agent, Pheromone): 
+                        agentes_en_distancia.append(agent)
                 else: 
                     agentes_en_distancia.append(agent)                 
 
         if self.children[0] is not None:
             for child in self.children:
-                agentes_en_distancia.extend(child.get_adjacents(x, y, distancia, onlyRecolectors))
-
+                agentes_en_distancia.extend(child.get_adjacents(x, y, distancia, onlyRecolectors, onlyPheromones))
+        
         return agentes_en_distancia
 
     def calc_dist(self, x1, y1, x2, y2):
