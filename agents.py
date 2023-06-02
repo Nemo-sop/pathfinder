@@ -77,7 +77,7 @@ class Recolector():
                     recolector.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
             """
     
-    def hear(self, recolectores_cercanos):
+    def hear(self, recolectores_cercanos, screen):
         for recolector in recolectores_cercanos:
             # si el recolector esta mas cerca de la base, actualizo mi contador
             if recolector.base_counter < self.base_counter:
@@ -85,6 +85,9 @@ class Recolector():
                 # si yo me estoy dirigiendo a la base, cambio mi direccion hacia el
                 if self.heading_base:
                     self.cambiar_direccion_hacia_punto(recolector.x, recolector.y)
+                    pos1 = (self.x, self.y)
+                    pos2 = (recolector.x, recolector.y)
+                    pygame.draw.line(screen,(255,255,255), pos1, pos2)
 
             # si el recolector esta mas cerca del recurso, actualizo mi contador
             if recolector.resource_counter < self.resource_counter:

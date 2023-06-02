@@ -80,14 +80,14 @@ while True:
                         agent.heading_base = False
                         colision.resources += 10
 
-            agent.hear(recolectors_in_range_to_hear)
+            agent.hear(recolectors_in_range_to_hear, screen)
             agent.update()
             agent.draw(screen)
         
         # Actualizar y dibujar a las reinas
         elif isinstance(agent, Queen):
             agent.draw(screen)
-            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=50, onlyRecolectors=True)
+            recolectors_in_range_to_hear = space.get_adjacents(agent.x, agent.y, distancia=100, onlyRecolectors=True)
             agent.shout(recolectors_in_range_to_hear)
             if agent.resources >= 10:
                 new_recolector = agent.create_recolector()
@@ -98,9 +98,13 @@ while True:
     text = font.render(str("Agent Count: "+str(len(agents))), True, (255,0,0))
     screen.blit(text, (25, 50))
 
+    pygame.draw.line(screen,(255,255,255), (10, 10), (10, 60))
+
     fps.renderFPS(screen)
     pygame.display.update()
     fps.clock.tick(512)
+
+    
 
 
 
